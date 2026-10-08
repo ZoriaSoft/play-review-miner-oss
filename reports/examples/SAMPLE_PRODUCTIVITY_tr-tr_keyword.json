@@ -1,0 +1,866 @@
+{
+  "totals": {
+    "apps": 3,
+    "reviews": 24,
+    "informative": 22,
+    "low_signal": 2,
+    "unlabeled": 0,
+    "no_theme": 0,
+    "date_from": "2026-09-09",
+    "date_to": "2026-09-30"
+  },
+  "categories": {
+    "bug": 9,
+    "missing_feature": 3,
+    "ux": 2,
+    "pricing_ads": 6,
+    "performance": 1,
+    "other": 1
+  },
+  "themes": [
+    {
+      "theme_id": "crash_wont_open",
+      "label": "Çöküyor / açılmıyor / çalışmıyor",
+      "category": "bug",
+      "opportunity": "Stabil, hafif ve hızlı açılan bir uygulama; çökme oranını düşük tutmak tek başına fark yaratır.",
+      "reviews": 7,
+      "share_of_informative": 0.3182,
+      "apps_hit": 3,
+      "score": 7.0,
+      "thumbs_up": 36,
+      "stars": {
+        "1": 6,
+        "2": 1
+      },
+      "apps": [
+        {
+          "app_id": "com.example.pdffox",
+          "title": "PDF Fox Reader",
+          "reviews": 3,
+          "what_it_does": "PDF görüntüleyin, not alın, sayfaları birleştirin ve tarayın."
+        },
+        {
+          "app_id": "com.example.acmenotes",
+          "title": "Acme Notes",
+          "reviews": 2,
+          "what_it_does": "Notlarınızı etiketleyin, cihazlar arasında senkronize edin ve hızlıca arayın."
+        },
+        {
+          "app_id": "com.example.taskbee",
+          "title": "TaskBee: To-Do",
+          "reviews": 2,
+          "what_it_does": "Yapılacaklar listesi, hatırlatıcılar ve alışkanlık takibi tek uygulamada."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "TaskBee: To-Do",
+          "app_id": "com.example.taskbee",
+          "stars": 1,
+          "date": "2026-09-15",
+          "thumbs_up": 9,
+          "text": "It keeps crashing when I open the calendar view."
+        },
+        {
+          "app": "PDF Fox Reader",
+          "app_id": "com.example.pdffox",
+          "stars": 1,
+          "date": "2026-09-15",
+          "thumbs_up": 9,
+          "text": "PDF açılmıyor, siyah ekran geliyor."
+        },
+        {
+          "app": "Acme Notes",
+          "app_id": "com.example.acmenotes",
+          "stars": 1,
+          "date": "2026-09-27",
+          "thumbs_up": 7,
+          "text": "Senkronizasyon çalışmıyor, telefonda yazdığım not tablette görünmüyor."
+        }
+      ]
+    },
+    {
+      "theme_id": "paywall_subscription",
+      "label": "Zorunlu abonelik / ödeme duvarı",
+      "category": "pricing_ads",
+      "opportunity": "Temel özellikleri ücretsiz bırakan, adil ve şeffaf fiyatlı (tek seferlik veya ucuz) bir model.",
+      "reviews": 3,
+      "share_of_informative": 0.1364,
+      "apps_hit": 3,
+      "score": 3.0,
+      "thumbs_up": 3,
+      "stars": {
+        "2": 3
+      },
+      "apps": [
+        {
+          "app_id": "com.example.acmenotes",
+          "title": "Acme Notes",
+          "reviews": 1,
+          "what_it_does": "Notlarınızı etiketleyin, cihazlar arasında senkronize edin ve hızlıca arayın."
+        },
+        {
+          "app_id": "com.example.taskbee",
+          "title": "TaskBee: To-Do",
+          "reviews": 1,
+          "what_it_does": "Yapılacaklar listesi, hatırlatıcılar ve alışkanlık takibi tek uygulamada."
+        },
+        {
+          "app_id": "com.example.pdffox",
+          "title": "PDF Fox Reader",
+          "reviews": 1,
+          "what_it_does": "PDF görüntüleyin, not alın, sayfaları birleştirin ve tarayın."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "PDF Fox Reader",
+          "app_id": "com.example.pdffox",
+          "stars": 2,
+          "date": "2026-09-24",
+          "thumbs_up": 1,
+          "text": "Birleştirme özelliği için para istiyor, temel bir özellik bu."
+        },
+        {
+          "app": "Acme Notes",
+          "app_id": "com.example.acmenotes",
+          "stars": 2,
+          "date": "2026-09-24",
+          "thumbs_up": 1,
+          "text": "Her şey için premium abonelik istiyor, eskiden ücretsizdi."
+        },
+        {
+          "app": "TaskBee: To-Do",
+          "app_id": "com.example.taskbee",
+          "stars": 2,
+          "date": "2026-09-24",
+          "thumbs_up": 1,
+          "text": "Abonelik almadan üçten fazla liste açılmıyor, çok pahalı."
+        }
+      ]
+    },
+    {
+      "theme_id": "ads_intrusive",
+      "label": "Aşırı / rahatsız edici reklam",
+      "category": "pricing_ads",
+      "opportunity": "Reklamsız ya da çok az ve rahatsız etmeyen reklamla çalışan bir alternatif; tek seferlik ücretle reklam kaldırma.",
+      "reviews": 3,
+      "share_of_informative": 0.1364,
+      "apps_hit": 3,
+      "score": 3.0,
+      "thumbs_up": 18,
+      "stars": {
+        "1": 2,
+        "2": 1
+      },
+      "apps": [
+        {
+          "app_id": "com.example.acmenotes",
+          "title": "Acme Notes",
+          "reviews": 1,
+          "what_it_does": "Notlarınızı etiketleyin, cihazlar arasında senkronize edin ve hızlıca arayın."
+        },
+        {
+          "app_id": "com.example.taskbee",
+          "title": "TaskBee: To-Do",
+          "reviews": 1,
+          "what_it_does": "Yapılacaklar listesi, hatırlatıcılar ve alışkanlık takibi tek uygulamada."
+        },
+        {
+          "app_id": "com.example.pdffox",
+          "title": "PDF Fox Reader",
+          "reviews": 1,
+          "what_it_does": "PDF görüntüleyin, not alın, sayfaları birleştirin ve tarayın."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "Acme Notes",
+          "app_id": "com.example.acmenotes",
+          "stars": 1,
+          "date": "2026-09-21",
+          "thumbs_up": 8,
+          "text": "Too many ads, a full screen ad after every note."
+        },
+        {
+          "app": "TaskBee: To-Do",
+          "app_id": "com.example.taskbee",
+          "stars": 1,
+          "date": "2026-09-21",
+          "thumbs_up": 8,
+          "text": "Reklam çok fazla, her görev tamamlayınca reklam."
+        },
+        {
+          "app": "PDF Fox Reader",
+          "app_id": "com.example.pdffox",
+          "stars": 2,
+          "date": "2026-09-18",
+          "thumbs_up": 2,
+          "text": "Reklamlar yüzünden belgeyi okuyamıyorum."
+        }
+      ]
+    },
+    {
+      "theme_id": "files_pdf_print",
+      "label": "Dosya açma / kaydetme / PDF / yazdırma / yükleme sorunu",
+      "category": "bug",
+      "opportunity": "Dosyaları sorunsuz açan, kaydeden ve dışa aktaran sade bir belge aracı.",
+      "reviews": 3,
+      "share_of_informative": 0.1364,
+      "apps_hit": 1,
+      "score": 1.73,
+      "thumbs_up": 16,
+      "stars": {
+        "1": 3
+      },
+      "apps": [
+        {
+          "app_id": "com.example.pdffox",
+          "title": "PDF Fox Reader",
+          "reviews": 3,
+          "what_it_does": "PDF görüntüleyin, not alın, sayfaları birleştirin ve tarayın."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "PDF Fox Reader",
+          "app_id": "com.example.pdffox",
+          "stars": 1,
+          "date": "2026-09-15",
+          "thumbs_up": 9,
+          "text": "PDF açılmıyor, siyah ekran geliyor."
+        },
+        {
+          "app": "PDF Fox Reader",
+          "app_id": "com.example.pdffox",
+          "stars": 1,
+          "date": "2026-09-27",
+          "thumbs_up": 7,
+          "text": "Can't save the file after editing, it says error."
+        },
+        {
+          "app": "PDF Fox Reader",
+          "app_id": "com.example.pdffox",
+          "stars": 1,
+          "date": "2026-09-30",
+          "thumbs_up": 0,
+          "text": "Büyük PDF dosyaları açılmıyor, yükleniyor deyip kalıyor."
+        }
+      ]
+    },
+    {
+      "theme_id": "removed_feature",
+      "label": "Kaldırılan / değiştirilen özellik (eski hali daha iyiydi)",
+      "category": "ux",
+      "opportunity": "Kullanıcıların sevdiği ama rakibin kaldırdığı özellikleri geri sunan bir alternatif.",
+      "reviews": 2,
+      "share_of_informative": 0.0909,
+      "apps_hit": 2,
+      "score": 1.63,
+      "thumbs_up": 4,
+      "stars": {
+        "2": 2
+      },
+      "apps": [
+        {
+          "app_id": "com.example.acmenotes",
+          "title": "Acme Notes",
+          "reviews": 1,
+          "what_it_does": "Notlarınızı etiketleyin, cihazlar arasında senkronize edin ve hızlıca arayın."
+        },
+        {
+          "app_id": "com.example.taskbee",
+          "title": "TaskBee: To-Do",
+          "reviews": 1,
+          "what_it_does": "Yapılacaklar listesi, hatırlatıcılar ve alışkanlık takibi tek uygulamada."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "TaskBee: To-Do",
+          "app_id": "com.example.taskbee",
+          "stars": 2,
+          "date": "2026-09-12",
+          "thumbs_up": 3,
+          "text": "Eski hali daha iyiydi, yeni tasarım karmaşık."
+        },
+        {
+          "app": "Acme Notes",
+          "app_id": "com.example.acmenotes",
+          "stars": 2,
+          "date": "2026-09-24",
+          "thumbs_up": 1,
+          "text": "Her şey için premium abonelik istiyor, eskiden ücretsizdi."
+        }
+      ]
+    },
+    {
+      "theme_id": "sync_backup",
+      "label": "Senkronizasyon / yedekleme sorunu",
+      "category": "bug",
+      "opportunity": "Cihazlar arası sorunsuz senkronizasyon ve kolay yedek alma/geri yükleme.",
+      "reviews": 2,
+      "share_of_informative": 0.0909,
+      "apps_hit": 1,
+      "score": 1.15,
+      "thumbs_up": 7,
+      "stars": {
+        "1": 2
+      },
+      "apps": [
+        {
+          "app_id": "com.example.acmenotes",
+          "title": "Acme Notes",
+          "reviews": 2,
+          "what_it_does": "Notlarınızı etiketleyin, cihazlar arasında senkronize edin ve hızlıca arayın."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "Acme Notes",
+          "app_id": "com.example.acmenotes",
+          "stars": 1,
+          "date": "2026-09-27",
+          "thumbs_up": 7,
+          "text": "Senkronizasyon çalışmıyor, telefonda yazdığım not tablette görünmüyor."
+        },
+        {
+          "app": "Acme Notes",
+          "app_id": "com.example.acmenotes",
+          "stars": 1,
+          "date": "2026-09-30",
+          "thumbs_up": 0,
+          "text": "Son güncellemeden sonra notlarımın hepsi kayboldu, yedek de yok."
+        }
+      ]
+    },
+    {
+      "theme_id": "notifications_reminders",
+      "label": "Bildirim / hatırlatıcı çalışmıyor",
+      "category": "bug",
+      "opportunity": "Zamanında ve güvenilir çalışan hatırlatıcılar (Android pil optimizasyonuna dayanıklı).",
+      "reviews": 2,
+      "share_of_informative": 0.0909,
+      "apps_hit": 1,
+      "score": 1.15,
+      "thumbs_up": 7,
+      "stars": {
+        "1": 2
+      },
+      "apps": [
+        {
+          "app_id": "com.example.taskbee",
+          "title": "TaskBee: To-Do",
+          "reviews": 2,
+          "what_it_does": "Yapılacaklar listesi, hatırlatıcılar ve alışkanlık takibi tek uygulamada."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "TaskBee: To-Do",
+          "app_id": "com.example.taskbee",
+          "stars": 1,
+          "date": "2026-09-27",
+          "thumbs_up": 7,
+          "text": "Bildirim gelmiyor, pil optimizasyonunu kapattım yine olmadı."
+        },
+        {
+          "app": "TaskBee: To-Do",
+          "app_id": "com.example.taskbee",
+          "stars": 1,
+          "date": "2026-09-30",
+          "thumbs_up": 0,
+          "text": "Hatırlatıcılar zamanında çalmıyor, toplantıyı kaçırdım."
+        }
+      ]
+    },
+    {
+      "theme_id": "slow_laggy",
+      "label": "Yavaş / donuyor / kasıyor",
+      "category": "performance",
+      "opportunity": "Düşük donanımlı telefonlarda bile hızlı çalışan hafif bir sürüm (lite).",
+      "reviews": 2,
+      "share_of_informative": 0.0909,
+      "apps_hit": 1,
+      "score": 1.15,
+      "thumbs_up": 8,
+      "stars": {
+        "1": 2
+      },
+      "apps": [
+        {
+          "app_id": "com.example.pdffox",
+          "title": "PDF Fox Reader",
+          "reviews": 2,
+          "what_it_does": "PDF görüntüleyin, not alın, sayfaları birleştirin ve tarayın."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "PDF Fox Reader",
+          "app_id": "com.example.pdffox",
+          "stars": 1,
+          "date": "2026-09-21",
+          "thumbs_up": 8,
+          "text": "Uygulama çok yavaş, sayfalar arasında geçiş kasıyor."
+        },
+        {
+          "app": "PDF Fox Reader",
+          "app_id": "com.example.pdffox",
+          "stars": 1,
+          "date": "2026-09-30",
+          "thumbs_up": 0,
+          "text": "Büyük PDF dosyaları açılmıyor, yükleniyor deyip kalıyor."
+        }
+      ]
+    },
+    {
+      "theme_id": "update_broke",
+      "label": "Güncellemeden sonra bozuldu",
+      "category": "bug",
+      "opportunity": "Geriye dönük uyumluluğa ve sürüm kalitesine önem veren, eski kullanıcıları kızdırmayan bir ürün.",
+      "reviews": 1,
+      "share_of_informative": 0.0455,
+      "apps_hit": 1,
+      "score": 0.58,
+      "thumbs_up": 0,
+      "stars": {
+        "1": 1
+      },
+      "apps": [
+        {
+          "app_id": "com.example.acmenotes",
+          "title": "Acme Notes",
+          "reviews": 1,
+          "what_it_does": "Notlarınızı etiketleyin, cihazlar arasında senkronize edin ve hızlıca arayın."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "Acme Notes",
+          "app_id": "com.example.acmenotes",
+          "stars": 1,
+          "date": "2026-09-30",
+          "thumbs_up": 0,
+          "text": "Son güncellemeden sonra notlarımın hepsi kayboldu, yedek de yok."
+        }
+      ]
+    },
+    {
+      "theme_id": "data_loss",
+      "label": "Veri / not kaybı",
+      "category": "bug",
+      "opportunity": "Güvenilir yerel+bulut yedekleme, sürüm geçmişi ve 'hiçbir şey kaybolmaz' vaadi.",
+      "reviews": 1,
+      "share_of_informative": 0.0455,
+      "apps_hit": 1,
+      "score": 0.58,
+      "thumbs_up": 0,
+      "stars": {
+        "1": 1
+      },
+      "apps": [
+        {
+          "app_id": "com.example.acmenotes",
+          "title": "Acme Notes",
+          "reviews": 1,
+          "what_it_does": "Notlarınızı etiketleyin, cihazlar arasında senkronize edin ve hızlıca arayın."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "Acme Notes",
+          "app_id": "com.example.acmenotes",
+          "stars": 1,
+          "date": "2026-09-30",
+          "thumbs_up": 0,
+          "text": "Son güncellemeden sonra notlarımın hepsi kayboldu, yedek de yok."
+        }
+      ]
+    },
+    {
+      "theme_id": "widget_missing",
+      "label": "Widget / ana ekran bileşeni",
+      "category": "missing_feature",
+      "opportunity": "İyi tasarlanmış, işlevsel ana ekran widget'ları.",
+      "reviews": 1,
+      "share_of_informative": 0.0455,
+      "apps_hit": 1,
+      "score": 0.58,
+      "thumbs_up": 2,
+      "stars": {
+        "2": 1
+      },
+      "apps": [
+        {
+          "app_id": "com.example.acmenotes",
+          "title": "Acme Notes",
+          "reviews": 1,
+          "what_it_does": "Notlarınızı etiketleyin, cihazlar arasında senkronize edin ve hızlıca arayın."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "Acme Notes",
+          "app_id": "com.example.acmenotes",
+          "stars": 2,
+          "date": "2026-09-18",
+          "thumbs_up": 2,
+          "text": "Widget olsa çok iyi olurdu, ana ekrandan not ekleyemiyorum."
+        }
+      ]
+    },
+    {
+      "theme_id": "feature_request",
+      "label": "Özellik isteği / eksik özellik",
+      "category": "missing_feature",
+      "opportunity": "Kullanıcıların açıkça istediği eksik özellikleri birinci sürümden sunmak.",
+      "reviews": 1,
+      "share_of_informative": 0.0455,
+      "apps_hit": 1,
+      "score": 0.58,
+      "thumbs_up": 10,
+      "stars": {
+        "2": 1
+      },
+      "apps": [
+        {
+          "app_id": "com.example.acmenotes",
+          "title": "Acme Notes",
+          "reviews": 1,
+          "what_it_does": "Notlarınızı etiketleyin, cihazlar arasında senkronize edin ve hızlıca arayın."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "Acme Notes",
+          "app_id": "com.example.acmenotes",
+          "stars": 2,
+          "date": "2026-09-09",
+          "thumbs_up": 10,
+          "text": "Please add a dark theme option, the white screen hurts at night."
+        }
+      ]
+    },
+    {
+      "theme_id": "battery_storage",
+      "label": "Pil / depolama / RAM tüketimi",
+      "category": "performance",
+      "opportunity": "Pil ve depolama dostu, küçük boyutlu bir uygulama.",
+      "reviews": 1,
+      "share_of_informative": 0.0455,
+      "apps_hit": 1,
+      "score": 0.58,
+      "thumbs_up": 7,
+      "stars": {
+        "1": 1
+      },
+      "apps": [
+        {
+          "app_id": "com.example.taskbee",
+          "title": "TaskBee: To-Do",
+          "reviews": 1,
+          "what_it_does": "Yapılacaklar listesi, hatırlatıcılar ve alışkanlık takibi tek uygulamada."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "TaskBee: To-Do",
+          "app_id": "com.example.taskbee",
+          "stars": 1,
+          "date": "2026-09-27",
+          "thumbs_up": 7,
+          "text": "Bildirim gelmiyor, pil optimizasyonunu kapattım yine olmadı."
+        }
+      ]
+    },
+    {
+      "theme_id": "expensive",
+      "label": "Fiyat çok pahalı",
+      "category": "pricing_ads",
+      "opportunity": "Yerel (Türkiye) fiyatlandırma, öğrenci/aile planı veya daha ucuz bir alternatif.",
+      "reviews": 1,
+      "share_of_informative": 0.0455,
+      "apps_hit": 1,
+      "score": 0.58,
+      "thumbs_up": 1,
+      "stars": {
+        "2": 1
+      },
+      "apps": [
+        {
+          "app_id": "com.example.taskbee",
+          "title": "TaskBee: To-Do",
+          "reviews": 1,
+          "what_it_does": "Yapılacaklar listesi, hatırlatıcılar ve alışkanlık takibi tek uygulamada."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "TaskBee: To-Do",
+          "app_id": "com.example.taskbee",
+          "stars": 2,
+          "date": "2026-09-24",
+          "thumbs_up": 1,
+          "text": "Abonelik almadan üçten fazla liste açılmıyor, çok pahalı."
+        }
+      ]
+    },
+    {
+      "theme_id": "language_translation",
+      "label": "Türkçe / dil / çeviri eksikliği",
+      "category": "ux",
+      "opportunity": "Tam Türkçe destekli, yerelleştirmesi özenli bir alternatif.",
+      "reviews": 1,
+      "share_of_informative": 0.0455,
+      "apps_hit": 1,
+      "score": 0.58,
+      "thumbs_up": 2,
+      "stars": {
+        "2": 1
+      },
+      "apps": [
+        {
+          "app_id": "com.example.taskbee",
+          "title": "TaskBee: To-Do",
+          "reviews": 1,
+          "what_it_does": "Yapılacaklar listesi, hatırlatıcılar ve alışkanlık takibi tek uygulamada."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "TaskBee: To-Do",
+          "app_id": "com.example.taskbee",
+          "stars": 2,
+          "date": "2026-09-18",
+          "thumbs_up": 2,
+          "text": "Türkçe dil desteği yok, menüler İngilizce."
+        }
+      ]
+    },
+    {
+      "theme_id": "hard_to_use_ui",
+      "label": "Karmaşık / kullanışsız arayüz",
+      "category": "ux",
+      "opportunity": "Sade, öğrenmesi kolay, gereksiz özelliklerden arındırılmış bir arayüz.",
+      "reviews": 1,
+      "share_of_informative": 0.0455,
+      "apps_hit": 1,
+      "score": 0.58,
+      "thumbs_up": 3,
+      "stars": {
+        "2": 1
+      },
+      "apps": [
+        {
+          "app_id": "com.example.taskbee",
+          "title": "TaskBee: To-Do",
+          "reviews": 1,
+          "what_it_does": "Yapılacaklar listesi, hatırlatıcılar ve alışkanlık takibi tek uygulamada."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "TaskBee: To-Do",
+          "app_id": "com.example.taskbee",
+          "stars": 2,
+          "date": "2026-09-12",
+          "thumbs_up": 3,
+          "text": "Eski hali daha iyiydi, yeni tasarım karmaşık."
+        }
+      ]
+    },
+    {
+      "theme_id": "privacy_permissions",
+      "label": "Gizlilik / gereksiz izinler",
+      "category": "other",
+      "opportunity": "Az izin isteyen, veriyi cihazda tutan, gizliliği ön plana çıkaran bir alternatif.",
+      "reviews": 1,
+      "share_of_informative": 0.0455,
+      "apps_hit": 1,
+      "score": 0.58,
+      "thumbs_up": 3,
+      "stars": {
+        "1": 1
+      },
+      "apps": [
+        {
+          "app_id": "com.example.pdffox",
+          "title": "PDF Fox Reader",
+          "reviews": 1,
+          "what_it_does": "PDF görüntüleyin, not alın, sayfaları birleştirin ve tarayın."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "PDF Fox Reader",
+          "app_id": "com.example.pdffox",
+          "stars": 1,
+          "date": "2026-09-12",
+          "thumbs_up": 3,
+          "text": "Gereksiz izinler istiyor, kişilerime neden erişsin?"
+        }
+      ]
+    },
+    {
+      "theme_id": "offline_mode",
+      "label": "İnternetsiz (offline) kullanım",
+      "category": "missing_feature",
+      "opportunity": "İnternet olmadan da tam çalışan, verileri cihazda tutan bir uygulama.",
+      "reviews": 1,
+      "share_of_informative": 0.0455,
+      "apps_hit": 1,
+      "score": 0.58,
+      "thumbs_up": 10,
+      "stars": {
+        "2": 1
+      },
+      "apps": [
+        {
+          "app_id": "com.example.pdffox",
+          "title": "PDF Fox Reader",
+          "reviews": 1,
+          "what_it_does": "PDF görüntüleyin, not alın, sayfaları birleştirin ve tarayın."
+        }
+      ],
+      "quotes": [
+        {
+          "app": "PDF Fox Reader",
+          "app_id": "com.example.pdffox",
+          "stars": 2,
+          "date": "2026-09-09",
+          "thumbs_up": 10,
+          "text": "Offline kullanılamıyor, internet olmadan hiçbir şey yapmıyor."
+        }
+      ]
+    }
+  ],
+  "apps": [
+    {
+      "rank": 1,
+      "app_id": "com.example.acmenotes",
+      "title": "Acme Notes",
+      "developer": "Acme Labs",
+      "what_it_does": "Notlarınızı etiketleyin, cihazlar arasında senkronize edin ve hızlıca arayın.",
+      "what_it_does_source": "play_summary_tr",
+      "genre": "Verimlilik",
+      "installs": "100.000+",
+      "real_installs": 123456,
+      "score": 4.1,
+      "ratings": 1234,
+      "contains_ads": true,
+      "url": "https://play.google.com/store/apps/details?id=com.example.acmenotes",
+      "list_source": "category_page",
+      "low_star_reviews": 8,
+      "informative": 7,
+      "top_themes": [
+        {
+          "theme_id": "sync_backup",
+          "label": "Senkronizasyon / yedekleme sorunu",
+          "reviews": 2
+        },
+        {
+          "theme_id": "crash_wont_open",
+          "label": "Çöküyor / açılmıyor / çalışmıyor",
+          "reviews": 2
+        },
+        {
+          "theme_id": "update_broke",
+          "label": "Güncellemeden sonra bozuldu",
+          "reviews": 1
+        }
+      ]
+    },
+    {
+      "rank": 2,
+      "app_id": "com.example.taskbee",
+      "title": "TaskBee: To-Do",
+      "developer": "Bee Apps",
+      "what_it_does": "Yapılacaklar listesi, hatırlatıcılar ve alışkanlık takibi tek uygulamada.",
+      "what_it_does_source": "play_summary_tr",
+      "genre": "Verimlilik",
+      "installs": "100.000+",
+      "real_installs": 123456,
+      "score": 4.1,
+      "ratings": 1234,
+      "contains_ads": true,
+      "url": "https://play.google.com/store/apps/details?id=com.example.taskbee",
+      "list_source": "category_page",
+      "low_star_reviews": 8,
+      "informative": 7,
+      "top_themes": [
+        {
+          "theme_id": "notifications_reminders",
+          "label": "Bildirim / hatırlatıcı çalışmıyor",
+          "reviews": 2
+        },
+        {
+          "theme_id": "crash_wont_open",
+          "label": "Çöküyor / açılmıyor / çalışmıyor",
+          "reviews": 2
+        },
+        {
+          "theme_id": "battery_storage",
+          "label": "Pil / depolama / RAM tüketimi",
+          "reviews": 1
+        }
+      ]
+    },
+    {
+      "rank": 3,
+      "app_id": "com.example.pdffox",
+      "title": "PDF Fox Reader",
+      "developer": "Fox Tools",
+      "what_it_does": "PDF görüntüleyin, not alın, sayfaları birleştirin ve tarayın.",
+      "what_it_does_source": "play_summary_tr",
+      "genre": "Verimlilik",
+      "installs": "100.000+",
+      "real_installs": 123456,
+      "score": 4.1,
+      "ratings": 1234,
+      "contains_ads": true,
+      "url": "https://play.google.com/store/apps/details?id=com.example.pdffox",
+      "list_source": "category_page",
+      "low_star_reviews": 8,
+      "informative": 8,
+      "top_themes": [
+        {
+          "theme_id": "crash_wont_open",
+          "label": "Çöküyor / açılmıyor / çalışmıyor",
+          "reviews": 3
+        },
+        {
+          "theme_id": "files_pdf_print",
+          "label": "Dosya açma / kaydetme / PDF / yazdırma / yükleme sorunu",
+          "reviews": 3
+        },
+        {
+          "theme_id": "slow_laggy",
+          "label": "Yavaş / donuyor / kasıyor",
+          "reviews": 2
+        }
+      ]
+    }
+  ],
+  "generated_at": "2026-10-08 10:46 UTC",
+  "params": {
+    "category": "PRODUCTIVITY",
+    "lang": "tr",
+    "country": "tr",
+    "top": 3,
+    "max_stars": 2,
+    "since": null,
+    "list": "top",
+    "analyzer": "keyword",
+    "model": null
+  },
+  "extra": {
+    "unmatched_count": 0,
+    "clusters": []
+  },
+  "crawl": {
+    "candidates": 3,
+    "excluded": [],
+    "errors": []
+  }
+}

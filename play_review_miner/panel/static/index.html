@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Review Miner</title>
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/app.css">
+<script src="/static/app.js" defer></script>
+</head>
+<body>
+<div id="login" class="login hidden">
+  <form id="login-form" class="card login-card">
+    <div class="brand"><img src="/static/icon.svg" alt="" width="28" height="28"> Review Miner</div>
+    <p class="muted" id="login-hint">Panele girmek için parolanızı yazın.</p>
+    <label>Parola <input type="password" id="login-password" autocomplete="current-password" required></label>
+    <button type="submit" class="primary">Giriş</button>
+    <p class="error" id="login-error"></p>
+  </form>
+</div>
+
+<div id="app" class="hidden">
+  <header class="topbar">
+    <div class="brand"><img src="/static/icon.svg" alt="" width="24" height="24"> Review Miner <span class="muted small" id="version"></span></div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="run" class="active">Çalıştır</button>
+      <button data-tab="jobs">İşler <span class="badge hidden" id="running-badge"></span></button>
+      <button data-tab="reports">Raporlar</button>
+      <button data-tab="endpoints">Uç noktalar</button>
+    </nav>
+    <div class="top-actions">
+      <a id="proxy-link" class="ghost small hidden" target="_blank" rel="noopener">Proxy paneli ↗</a>
+      <button id="logout" class="ghost small">Çıkış</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- RUN -->
+    <section id="tab-run" class="tab">
+      <form id="run-form" class="card form">
+        <h2>Yeni çalıştırma</h2>
+        <div class="grid">
+          <label>İş türü <select name="kind" id="kind"></select></label>
+          <label>Kategori <select name="category" id="category"></select></label>
+          <label>Dil <input name="lang" value="tr" maxlength="3" required></label>
+          <label>Ülke <input name="country" value="tr" maxlength="2" required></label>
+          <label class="crawl-only">Uygulama sayısı <input name="top" type="number" min="1" max="500" value="20"></label>
+          <label class="crawl-only">Uygulama başına yorum <input name="reviews_per_app" type="number" min="1" max="5000" value="200"></label>
+          <label>En fazla yıldız <select name="max_stars"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select></label>
+          <label>Liste adı <input name="list_name" value="top" pattern="[A-Za-z0-9_\-]{1,40}"></label>
+          <label>Bu tarihten sonra <input name="since" type="date"></label>
+        </div>
+
+        <details class="crawl-only">
+          <summary>Niş / filtreler</summary>
+          <div class="grid">
+            <label class="check"><input type="checkbox" name="exclude_big"> Büyük şirketleri hariç tut</label>
+            <label class="check"><input type="checkbox" name="strict_genre"> Yalnız tam bu tür</label>
+            <label class="check"><input type="checkbox" name="refresh_apps"> Uygulama detaylarını yenile</label>
+            <label>Asgari düşük puanlı yorum <input name="min_reviews" type="number" min="0" max="1000" value="1"></label>
+            <label>Aday sayısı <input name="candidates" type="number" min="1" max="2000" placeholder="otomatik"></label>
+            <label>İstekler arası bekleme (sn) <input name="delay" type="number" min="0.2" max="10" step="0.1" value="1"></label>
+            <label class="wide">Ek arama terimleri <input name="search_terms" placeholder="ajanda, not defteri"></label>
+            <label class="wide">Hariç geliştiriciler <input name="exclude_devs" placeholder="Google LLC, Microsoft"></label>
+          </div>
+        </details>
+
+        <fieldset class="analysis">
+          <legend>Analiz</legend>
+          <div class="seg">
+            <label><input type="radio" name="analyzer" value="keyword"> Anahtar kelime <span class="muted small">(ücretsiz, hızlı)</span></label>
+            <label><input type="radio" name="analyzer" value="llm" checked> Dil modeli</label>
+          </div>
+          <div class="grid llm-only">
+            <label>Uç nokta <select name="endpoint_id" id="run-endpoint"></select></label>
+            <label class="wide">Model
+              <span class="row">
+                <input name="model" id="run-model" list="run-models" autocomplete="off" placeholder="ör. vendor/model-name" required>
+                <button type="button" id="run-add-model" class="ghost small" title="Bu modeli uç noktanın listesine ekle">+ kaydet</button>
+              </span>
+              <datalist id="run-models"></datalist>
+            </label>
+            <label>Paket boyutu <input name="batch_size" type="number" min="1" max="100" value="20"></label>
+            <label>Paralel istek <input name="concurrency" type="number" min="1" max="8" value="3"></label>
+            <label>İstek tavanı <input name="request_cap" type="number" min="1" placeholder="kota kadar"></label>
+            <label class="check"><input type="checkbox" name="reanalyze"> Hepsini yeniden analiz et</label>
+          </div>
+          <p class="muted small llm-only" id="quota-line"></p>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" class="primary">▶ Başlat</button>
+          <span class="error" id="run-error"></span>
+        </div>
+      </form>
+    </section>
+
+    <!-- JOBS -->
+    <section id="tab-jobs" class="tab hidden">
+      <div class="split">
+        <div class="list" id="job-list"></div>
+        <div class="card detail hidden" id="job-detail"></div>
+      </div>
+    </section>
+
+    <!-- REPORTS -->
+    <section id="tab-reports" class="tab hidden">
+      <div class="split">
+        <div class="list" id="report-list"></div>
+        <article class="card detail report hidden" id="report-view"></article>
+      </div>
+    </section>
+
+    <!-- ENDPOINTS -->
+    <section id="tab-endpoints" class="tab hidden">
+      <div class="split">
+        <div>
+          <div class="list" id="endpoint-list"></div>
+          <button id="new-endpoint" class="ghost">+ Uç nokta ekle</button>
+        </div>
+        <div class="card detail hidden" id="endpoint-detail">
+          <form id="endpoint-form" class="form">
+            <h2 id="endpoint-title">Uç nokta</h2>
+            <div class="grid">
+              <label>Ad <input name="name" required maxlength="60" placeholder="openrouter"></label>
+              <label class="wide">Base URL <input name="base_url" required placeholder="https://openrouter.ai/api/v1"></label>
+              <label class="wide">API anahtarı <input name="api_key" type="password" autocomplete="off" placeholder="değiştirmek için yazın"></label>
+              <label class="check"><input type="checkbox" name="clear_key"> Kayıtlı anahtarı sil</label>
+              <label>Günlük istek sınırı <input name="daily_limit" type="number" min="1" placeholder="sınırsız"></label>
+              <label class="wide">Varsayılan model <input name="default_model" list="endpoint-model-list" autocomplete="off"></label>
+              <label class="wide">Not <input name="note" maxlength="300"></label>
+            </div>
+            <div class="actions">
+              <button type="submit" class="primary">Kaydet</button>
+              <button type="button" id="endpoint-delete" class="danger ghost">Sil</button>
+              <span class="error" id="endpoint-error"></span>
+            </div>
+          </form>
+          <div id="endpoint-models" class="models hidden">
+            <h3>Modeller</h3>
+            <div class="row">
+              <button type="button" id="fetch-models" class="ghost small">↻ Uç noktadan çek</button>
+              <input id="model-filter" placeholder="filtrele…" class="grow">
+            </div>
+            <form id="add-model-form" class="row">
+              <input name="model_id" placeholder="manuel model id, ör. vendor/model-name:free" class="grow" required>
+              <input name="note" placeholder="not (isteğe bağlı)">
+              <button type="submit" class="small">+ Ekle</button>
+            </form>
+            <p class="muted small" id="model-count"></p>
+            <ul class="model-list" id="model-list"></ul>
+            <datalist id="endpoint-model-list"></datalist>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast hidden" role="status"></div>
+</div>
+</body>
+</html>

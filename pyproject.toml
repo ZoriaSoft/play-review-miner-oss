@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "play-review-miner"
+dynamic = ["version"]
+description = "Mine low-rated Google Play reviews of a category to find product opportunities."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+dependencies = ["google-play-scraper>=1.2.7,<2"]
+
+[project.optional-dependencies]
+cluster = ["scikit-learn>=1.3"]
+dev = ["pytest>=7", "ruff>=0.5", "scikit-learn>=1.3"]
+
+[project.urls]
+Homepage = "https://github.com/ZoriaSoft/play-review-miner-oss"
+Issues = "https://github.com/ZoriaSoft/play-review-miner-oss/issues"
+
+[project.scripts]
+play-review-miner = "play_review_miner.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "play_review_miner.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["play_review_miner*"]
+
+[tool.setuptools.package-data]
+"play_review_miner.panel" = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "UP", "I"]
+# E731: small lambdas are used as local helpers; E741: `l` is the established name for a label row
+# E501: report strings and the regex tables are long Turkish text; splitting them hurts readability
+ignore = ["E501", "E731", "E741", "UP006", "UP007", "UP035", "UP045", "B904"]
