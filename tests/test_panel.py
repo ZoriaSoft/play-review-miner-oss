@@ -341,6 +341,31 @@ def test_cancel_signals_verified_process(panel, monkeypatch):
             proc.kill()
 
 
+def test_recover_keeps_a_completed_job_done(tmp_path):
+    """Process gone but its log shows a produced report -> stays 'done',
+    not relabelled failed."""
+    data = tmp_path / "data"
+    data.mkdir()
+    reports = tmp_path / "reports"
+    reports.mkdir()
+    s = Store(data / "panel.db")
+    jid = s.create_job("report", {"kind": "report"}, None, None, None)
+    (data / "jobs").mkdir()
+    (data / "jobs" / f"{jid}.log").write_text("Report: reports/X_tr-tr_keyword.md\n", encoding="utf-8")
+    (reports / "X_tr-tr_keyword.md").write_text("# ok\n", encoding="utf-8")
+    s.update_job(jid, status="running", pid=99999999, process_start=None,
+                 log_path=str(data / "jobs" / f"{jid}.log"))
+    s.close()
+
+    r = Runner(Store(data / "panel.db"), tmp_path, "x.db", "reports", data / "jobs")
+    try:
+        job = r.store.get_job(jid)
+        assert job["status"] == "done" and job["reports"] == ["X_tr-tr_keyword.md"]
+    finally:
+        r.shutdown()
+        r.store.close()
+
+
 def test_recover_fails_unverifiable_running_jobs(tmp_path):
     """A job left 'running' whose recorded pid cannot be verified is closed
     as failed — and the foreign process holding that pid is untouched."""

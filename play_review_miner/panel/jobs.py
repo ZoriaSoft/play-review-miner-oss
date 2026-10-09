@@ -371,9 +371,13 @@ class Runner:
             if pid and start and _alive(pid) and _proc_start(pid) == start:
                 threading.Thread(target=self._watch_pid, args=(job["id"], pid, start), daemon=True).start()
             else:
-                self._finish(job["id"], None)  # harvest log (requests/reports) first
-                self.store.update_job(job["id"], status="failed", rc=None,
-                                      error="process no longer running (panel restarted)")
+                # Harvest the log first: a job that actually finished while the
+                # panel was down keeps its "done" + reports. Only when _finish
+                # could not establish success do we call it failed.
+                self._finish(job["id"], None)
+                if self.store.get_job(job["id"])["status"] != "done":
+                    self.store.update_job(job["id"], status="failed", rc=None,
+                                          error="process no longer running (panel restarted)")
 
     def _watch_pid(self, job_id: int, pid: int, process_start: str) -> None:
         # Stop watching the moment the pid stops matching the recorded identity:
