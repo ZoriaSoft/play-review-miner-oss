@@ -254,20 +254,35 @@ class Runner:
         with self._lock:
             proc = self._procs.get(job_id)
         pid = proc.pid if proc else job.get("pid")
-        if pid:
-            try:
-                os.killpg(pid, signal.SIGINT)  # the CLI saves what it has and exits with 130
-            except ProcessLookupError:
-                pass
-            threading.Timer(45, self._force_kill, args=(pid,)).start()
+        if pid is None or not self._is_our_process(pid, proc, job.get("process_start")):
+            # The stored pid is gone or was reused by an unrelated process —
+            # never signal a stranger; close the job out instead.
+            self.store.update_job(job_id, status="failed", finished_at=now_iso(),
+                                  error="process no longer running (panel restarted)")
+            return True
+        try:
+            os.killpg(pid, signal.SIGINT)  # the CLI saves what it has and exits with 130
+        except ProcessLookupError:
+            pass
+        threading.Timer(45, self._force_kill, args=(pid, job.get("process_start"))).start()
         return True
 
-    @staticmethod
-    def _force_kill(pid: int) -> None:
+    def _force_kill(self, pid: int, process_start: str | None) -> None:
+        if process_start is not None and _proc_start(pid) != process_start:
+            return  # 45 s later the pid may already belong to someone else
         try:
             os.killpg(pid, signal.SIGTERM)
         except ProcessLookupError:
             pass
+
+    @staticmethod
+    def _is_our_process(pid: int, proc: subprocess.Popen | None, process_start: str | None) -> bool:
+        """True only when the pid provably still belongs to our job."""
+        if proc is not None and proc.pid == pid and proc.poll() is None:
+            return True  # a live child of this panel process
+        if not process_start:
+            return False   # pid was recorded without an identity — unverifiable
+        return _proc_start(pid) == process_start
 
     def shutdown(self) -> None:
         self._stop = True
@@ -325,7 +340,8 @@ class Runner:
                                     stdin=subprocess.DEVNULL, start_new_session=True)
         with self._lock:
             self._procs[job["id"]] = proc
-        self.store.update_job(job["id"], status="running", started_at=now_iso(), pid=proc.pid, log_path=str(log_path))
+        self.store.update_job(job["id"], status="running", started_at=now_iso(), pid=proc.pid,
+                              process_start=_proc_start(proc.pid), log_path=str(log_path))
         threading.Thread(target=self._wait, args=(job["id"], proc), daemon=True).start()
 
     def _wait(self, job_id: int, proc: subprocess.Popen) -> None:
@@ -346,18 +362,36 @@ class Runner:
         self._wake.set()
 
     def _recover(self) -> None:
-        """Jobs left 'running' by a previous panel process: watch them if still alive, else close them."""
+        """Jobs left 'running' by a previous panel process: watch them if still alive *and
+        verifiably ours* (same pid + start time), else close them — a bare live pid can be an
+        unrelated process that reused it, and signalling that would be dangerous."""
         for job in self.store.jobs_with_status("running"):
             pid = job.get("pid")
-            if pid and _alive(pid):
-                threading.Thread(target=self._watch_pid, args=(job["id"], pid), daemon=True).start()
+            start = job.get("process_start")
+            if pid and start and _alive(pid) and _proc_start(pid) == start:
+                threading.Thread(target=self._watch_pid, args=(job["id"], pid, start), daemon=True).start()
             else:
-                self._finish(job["id"], None)
+                self._finish(job["id"], None)  # harvest log (requests/reports) first
+                self.store.update_job(job["id"], status="failed", rc=None,
+                                      error="process no longer running (panel restarted)")
 
-    def _watch_pid(self, job_id: int, pid: int) -> None:
-        while _alive(pid):
+    def _watch_pid(self, job_id: int, pid: int, process_start: str) -> None:
+        # Stop watching the moment the pid stops matching the recorded identity:
+        # the job ended and the pid was reused.
+        while _alive(pid) and _proc_start(pid) == process_start:
             time.sleep(2)
         self._finish(job_id, None)
+
+
+def _proc_start(pid: int) -> str | None:
+    """Linux: field 22 (starttime) of /proc/<pid>/stat — identifies a pid across
+    reuse. None on other platforms or a dead/unreadable process."""
+    try:
+        with open(f"/proc/{pid}/stat", "rb") as f:
+            # comm is parenthesised and may contain spaces — split after ')'
+            return f.read().rsplit(b")", 1)[1].split()[19].decode()
+    except (OSError, IndexError):
+        return None
 
 
 def _alive(pid: int) -> bool:
@@ -368,7 +402,7 @@ def _alive(pid: int) -> bool:
     except PermissionError:
         return True
     try:  # a zombie child of ours counts as finished
-        with open(f"/proc/{pid}/stat") as f:
-            return f.read().split()[2] != "Z"
+        with open(f"/proc/{pid}/stat", "rb") as f:
+            return f.read().rsplit(b")", 1)[1].split()[0] != b"Z"
     except OSError:
         return True

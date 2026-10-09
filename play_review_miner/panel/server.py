@@ -60,13 +60,29 @@ class Panel:
         self.runner = Runner(self.store, project_dir, db_path, out_dir, data_dir / "jobs", max_parallel)
         self.proxy_dashboard = proxy_dashboard
         self.sessions: dict[str, float] = {}
-        self.failures: dict[str, tuple[int, float]] = {}
+        self.failures: dict[str, tuple[int, float, float]] = {}  # (count, backoff-until, last-attempt)
         self.lock = threading.Lock()
+        self._last_sweep = 0.0
 
     # ---- auth ----------------------------------------------------------------------------
-    def login(self, ip: str, password: str) -> str:
+    def sweep(self, force: bool = False) -> None:
+        """Drop expired sessions and stale login-failure entries so the maps stay bounded.
+
+        Called on every login attempt (force) and, throttled to once a minute,
+        on each request — otherwise both dicts grow forever on a long-running panel.
+        """
+        now = time.time()
         with self.lock:
-            n, until = self.failures.get(ip, (0, 0.0))
+            if not force and now - self._last_sweep < 60:
+                return
+            self._last_sweep = now
+            self.sessions = {t: e for t, e in self.sessions.items() if e > now}
+            self.failures = {ip: v for ip, v in self.failures.items() if v[1] > now or v[2] > now - 3600}
+
+    def login(self, ip: str, password: str) -> str:
+        self.sweep(force=True)
+        with self.lock:
+            n, until, _ = self.failures.get(ip, (0, 0.0, 0.0))
             if until > time.time():
                 raise ApiError(429, f"Çok fazla hatalı deneme; {int(until - time.time()) + 1} sn bekleyin")
         if not self.store.has_password():
@@ -74,7 +90,9 @@ class Panel:
         if not self.store.check_password(password or ""):
             with self.lock:
                 n += 1
-                self.failures[ip] = (n, time.time() + (min(300, 2 ** n) if n >= 3 else 0))
+                # (count, backoff-until, last-attempt) — last-attempt is what
+                # makes "stale" definable without resetting the counter
+                self.failures[ip] = (n, time.time() + (min(300, 2 ** n) if n >= 3 else 0), time.time())
             raise ApiError(401, "Parola yanlış")
         with self.lock:
             self.failures.pop(ip, None)
@@ -187,7 +205,10 @@ def make_handler(panel: Panel):
 
         def client_ip(self) -> str:
             peer = self.client_address[0]
-            if peer in ("127.0.0.1", "::1"):  # behind a local reverse proxy / tunnel
+            # CF-Connecting-IP is honored only in tunnel mode (--public-host is
+            # set, so a cloudflared-style tunnel fronts the panel) AND the peer
+            # is loopback; otherwise any caller could spoof the login back-off.
+            if peer in ("127.0.0.1", "::1") and panel.public_hosts:
                 return self.headers.get("CF-Connecting-IP") or peer
             return peer
 
@@ -218,7 +239,13 @@ def make_handler(panel: Panel):
             self.send(status, json.dumps(data, ensure_ascii=False).encode(), "application/json; charset=utf-8", extra)
 
         def body(self) -> dict:
-            n = int(self.headers.get("Content-Length") or 0)
+            raw_len = self.headers.get("Content-Length")
+            try:
+                n = int(raw_len) if raw_len is not None else 0
+            except ValueError:
+                raise ApiError(400, "Geçersiz Content-Length") from None
+            if n < 0:
+                raise ApiError(400, "Geçersiz Content-Length")
             if n > 256_000:
                 raise ApiError(413, "İstek çok büyük")
             raw = self.rfile.read(n) if n else b"{}"
@@ -256,6 +283,7 @@ def make_handler(panel: Panel):
         def route(self, method: str) -> None:
             url = urlparse(self.path)
             path = url.path
+            panel.sweep()  # bounded session/failure maps; no-op more than once a minute
             try:
                 if method == "GET" and (path == "/" or path.startswith("/static/")):
                     return self.static(path)

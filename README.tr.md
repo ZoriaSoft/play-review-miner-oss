@@ -8,6 +8,8 @@ toplar, bunları **hata / eksik özellik / UX / fiyat-reklam / performans** tema
 
 [English README](README.md)
 
+<p align="center"><img src="docs/assets/how-it-works.svg" alt="Play Review Miner: Play category apps → 1-2 star review crawl → analyzer → complaint themes → opportunity report" width="100%"></p>
+
 - **Temel kullanım için API anahtarı gerekmez:** herkese açık Play Store verisi
   ([`google-play-scraper`](https://github.com/JoMingyu/google-play-scraper)) + çevrimdışı anahtar kelime analizi.
 - **Üç analiz motoru**
@@ -95,6 +97,8 @@ play-review-miner panel --port 8765     # http://127.0.0.1:8765
 `127.0.0.1`'de dinler; dışarıya kimlik doğrulayan bir ters vekil ya da tünel (ör. Cloudflare Tunnel + Access)
 arkasından açın ve `--public-host alan.adi` verin. Panelin kendi girişi, CSRF koruması ve sıkı CSP'si vardır;
 anahtarlar yalnız maskeli gösterilir ve `data/panel.db` (izin 600, git dışı) içinde durur.
+`CF-Connecting-IP` yalnızca tünel modunda (`--public-host` veriliyken) ve loopback bağlı tünelden gelirken
+okunur — aksi halde başlık sahteciliği giriş denemesi sınırlamasını aşamaz.
 
 ## Sorumlu kullanım
 

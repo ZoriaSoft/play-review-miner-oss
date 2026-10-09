@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     requests     INTEGER,
     rc           INTEGER,
     pid          INTEGER,
+    process_start TEXT,              -- /proc/<pid>/stat starttime: identifies a pid across reuse
     log_path     TEXT,
     reports      TEXT,               -- JSON list of report file names
     error        TEXT,
@@ -57,6 +58,8 @@ CREATE TABLE IF NOT EXISTS jobs (
 );
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);
 """
+
+SCHEMA_VERSION = 1  # PRAGMA user_version; migrations are detection-based and idempotent
 
 
 def now_iso() -> str:
@@ -84,12 +87,22 @@ class Store:
         self._conn.execute("PRAGMA foreign_keys=ON")
         self._conn.executescript(SCHEMA)
         self._lock = threading.RLock()
+        self._migrate()
         if new:
             os.chmod(self.path, 0o600)
         for suffix in ("-wal", "-shm"):
             p = Path(str(self.path) + suffix)
             if p.exists():
                 os.chmod(p, 0o600)
+
+    def _migrate(self) -> None:
+        """Detection-based, idempotent migrations; PRAGMA user_version records the level."""
+        cols = {r["name"] for r in self._conn.execute("PRAGMA table_info(jobs)")}
+        if "process_start" not in cols:
+            # v1: jobs.pid alone cannot distinguish a live job from a reused pid
+            self._conn.execute("ALTER TABLE jobs ADD COLUMN process_start TEXT")
+        self._conn.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
+        self._conn.commit()
 
     def close(self) -> None:
         self._conn.close()

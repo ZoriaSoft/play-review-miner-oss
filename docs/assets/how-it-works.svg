@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" width="1200" role="img">
+  <title>Play Review Miner — how it works</title>
+  <desc>Top apps of a Play category are crawled for 1-2 star reviews into SQLite, an analyzer groups them into complaint themes, and an opportunity report names what users hate most and where.</desc>
+  <style>
+    .t1 { font: 600 26px ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif; fill: #e6edf3; }
+    .t2 { font: 400 15px ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif; fill: #9aa7b4; }
+    .ct { font: 600 15px ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif; fill: #e6edf3; }
+    .cs { font: 400 11px ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif; fill: #5b6672; letter-spacing: 1.5px; }
+    .cd { font: 400 13px ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif; fill: #9aa7b4; }
+    .cdw { font: 400 13px ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif; fill: #e6edf3; }
+    .mono { font: 500 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #9aa7b4; }
+    .card { fill: #161b22; stroke: #232a33; }
+    .wire { stroke: #3a4450; stroke-width: 2; fill: none; }
+    .flow { stroke: #ff7a59; stroke-width: 2; fill: none; stroke-dasharray: 3 9; animation: dashmove 1.8s linear infinite; }
+    @keyframes dashmove { to { stroke-dashoffset: -24; } }
+    .stage { opacity: 0; animation: reveal .5s cubic-bezier(0.2, 0, 0, 1) both; }
+    @keyframes reveal { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    .s1 { animation-delay: .1s; } .s2 { animation-delay: .25s; } .s3 { animation-delay: .4s; }
+    .s4 { animation-delay: .55s; } .s5 { animation-delay: .7s; }
+    /* review cards sliding into the analyzer */
+    .rv { opacity: 0; }
+    .rvA { animation: rvA 10s cubic-bezier(0.2, 0, 0, 1) 1s infinite; }
+    .rvB { animation: rvB 10s cubic-bezier(0.2, 0, 0, 1) 1s infinite; }
+    @keyframes rvA {
+      0%   { transform: translate(248px, 264px); opacity: 0; }
+      8%   { opacity: 1; }
+      22%  { transform: translate(360px, 264px); }
+      40%  { transform: translate(560px, 264px); }
+      58%  { transform: translate(760px, 264px); opacity: 1; }
+      64%  { transform: translate(760px, 264px); opacity: 0; }
+      100% { transform: translate(760px, 264px); opacity: 0; }
+    }
+    @keyframes rvB {
+      0%, 26% { transform: translate(248px, 312px); opacity: 0; }
+      32%  { opacity: 1; }
+      46%  { transform: translate(360px, 312px); }
+      62%  { transform: translate(560px, 312px); }
+      78%  { transform: translate(760px, 312px); opacity: 1; }
+      84%  { transform: translate(760px, 312px); opacity: 0; }
+      100% { transform: translate(760px, 312px); opacity: 0; }
+    }
+    /* theme bars regrow each loop */
+    .bar { transform: scaleX(1); transform-box: fill-box; transform-origin: left center; }
+    .b1 { animation: bar 10s cubic-bezier(0.2, 0, 0, 1) 1s infinite; }
+    .b2 { animation: bar 10s cubic-bezier(0.2, 0, 0, 1) 1.12s infinite; }
+    .b3 { animation: bar 10s cubic-bezier(0.2, 0, 0, 1) 1.24s infinite; }
+    .b4 { animation: bar 10s cubic-bezier(0.2, 0, 0, 1) 1.36s infinite; }
+    .b5 { animation: bar 10s cubic-bezier(0.2, 0, 0, 1) 1.48s infinite; }
+    @keyframes bar {
+      0%, 44%   { transform: scaleX(1); }
+      52%       { transform: scaleX(0.12); }   /* dips as a new batch lands */
+      70%, 100% { transform: scaleX(1); }
+    }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+
+  <rect x="8" y="8" width="1184" height="604" rx="20" fill="#0e1116" stroke="#232a33"/>
+
+  <text class="t1" x="48" y="56">Play Review Miner</text>
+  <text class="t2" x="48" y="82">What do users hate most — and in which apps?</text>
+
+  <!-- stage 1: Play category + apps -->
+  <g class="stage s1">
+    <rect class="card" x="48" y="180" width="200" height="220" rx="12"/>
+    <text class="ct" x="148" y="212" text-anchor="middle">Google Play</text>
+    <text class="cd" x="148" y="234" text-anchor="middle">PRODUCTIVITY · tr-TR</text>
+    <text class="cs" x="148" y="256" text-anchor="middle">TOP APPS</text>
+    <g fill="#1c232c" stroke="#3a4450">
+      <rect x="66" y="270" width="48" height="38" rx="6"/><rect x="124" y="270" width="48" height="38" rx="6"/><rect x="182" y="270" width="48" height="38" rx="6"/>
+      <rect x="66" y="316" width="48" height="38" rx="6"/><rect x="124" y="316" width="48" height="38" rx="6"/><rect x="182" y="316" width="48" height="38" rx="6"/>
+    </g>
+    <text class="cd" x="148" y="380" text-anchor="middle" fill="#5b6672">+ niche mode via search</text>
+    <path class="wire" d="M 248 290 L 290 290"/>
+    <path class="flow" d="M 248 290 L 290 290"/>
+  </g>
+
+  <!-- stage 2: crawl -->
+  <g class="stage s2">
+    <rect class="card" x="290" y="215" width="180" height="150" rx="12"/>
+    <text class="ct" x="380" y="248" text-anchor="middle">CRAWL</text>
+    <text class="cd" x="380" y="272" text-anchor="middle">1–2★ reviews only</text>
+    <text class="cd" x="380" y="292" text-anchor="middle">incremental SQLite</text>
+    <text class="cd" x="380" y="322" text-anchor="middle" fill="#5b6672">polite · resumable</text>
+    <path class="wire" d="M 470 290 L 512 290"/>
+    <path class="flow" d="M 470 290 L 512 290"/>
+  </g>
+
+  <!-- stage 3: analyzer -->
+  <g class="stage s3">
+    <rect class="card" x="512" y="180" width="210" height="220" rx="12"/>
+    <text class="ct" x="617" y="212" text-anchor="middle">ANALYZER</text>
+    <rect x="532" y="228" width="170" height="32" rx="16" fill="#1c232c" stroke="#ff7a59" stroke-opacity="0.6"/>
+    <text class="cd" x="617" y="249" text-anchor="middle" fill="#e6edf3">keyword (offline)</text>
+    <rect x="532" y="268" width="170" height="32" rx="16" fill="#1c232c" stroke="#232a33"/>
+    <text class="cd" x="617" y="289" text-anchor="middle">OpenAI-compatible</text>
+    <rect x="532" y="308" width="170" height="32" rx="16" fill="#1c232c" stroke="#232a33"/>
+    <text class="cd" x="617" y="329" text-anchor="middle">Gemini</text>
+    <text class="cd" x="617" y="376" text-anchor="middle" fill="#5b6672">complaints → themes</text>
+    <path class="wire" d="M 722 290 L 764 290"/>
+    <path class="flow" d="M 722 290 L 764 290"/>
+  </g>
+
+  <!-- stage 4: theme bars -->
+  <g class="stage s4">
+    <rect class="card" x="764" y="180" width="220" height="220" rx="12"/>
+    <text class="ct" x="874" y="212" text-anchor="middle">THEMES</text>
+    <g font-size="12" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', sans-serif">
+      <text class="cd" x="782" y="240">Bugs</text>
+      <rect x="782" y="248" width="170" height="10" rx="5" fill="#1c232c"/>
+      <rect class="bar b1" x="782" y="248" width="170" height="10" rx="5" fill="#ff7a59"/>
+      <text class="cd" x="782" y="278">Missing features</text>
+      <rect x="782" y="286" width="170" height="10" rx="5" fill="#1c232c"/>
+      <rect class="bar b2" x="782" y="286" width="136" height="10" rx="5" fill="#ff7a59"/>
+      <text class="cd" x="782" y="316">UX</text>
+      <rect x="782" y="324" width="170" height="10" rx="5" fill="#1c232c"/>
+      <rect class="bar b3" x="782" y="324" width="102" height="10" rx="5" fill="#ff7a59"/>
+      <text class="cd" x="782" y="354">Pricing / ads</text>
+      <rect x="782" y="362" width="170" height="10" rx="5" fill="#1c232c"/>
+      <rect class="bar b4" x="782" y="362" width="78" height="10" rx="5" fill="#ff7a59"/>
+      <text class="cd" x="782" y="392">Performance</text>
+      <rect x="782" y="400" width="170" height="10" rx="5" fill="#1c232c"/>
+      <rect class="bar b5" x="782" y="400" width="56" height="10" rx="5" fill="#ff7a59"/>
+    </g>
+    <path class="wire" d="M 984 290 L 1026 290"/>
+    <path class="flow" d="M 984 290 L 1026 290"/>
+  </g>
+
+  <!-- stage 5: report -->
+  <g class="stage s5">
+    <rect x="1026" y="180" width="126" height="220" rx="12" fill="#161b22" stroke="#ff7a59" stroke-opacity="0.5"/>
+    <text class="ct" x="1089" y="212" text-anchor="middle">REPORT</text>
+    <text class="mono" x="1089" y="234" text-anchor="middle">.md + .json</text>
+    <line x1="1044" y1="260" x2="1134" y2="260" stroke="#3a4450" stroke-width="4" stroke-linecap="round"/>
+    <line x1="1044" y1="276" x2="1120" y2="276" stroke="#3a4450" stroke-width="4" stroke-linecap="round"/>
+    <rect x="1040" y="292" width="98" height="22" rx="5" fill="#3fb950" fill-opacity="0.15" stroke="#3fb950" stroke-opacity="0.6"/>
+    <text class="cd" x="1089" y="308" text-anchor="middle" fill="#3fb950" font-size="11">opportunity</text>
+    <text class="cd" x="1089" y="342" text-anchor="middle" fill="#5b6672" font-size="12">top complaint →</text>
+    <text class="cd" x="1089" y="360" text-anchor="middle" fill="#5b6672" font-size="12">opportunity</text>
+  </g>
+
+  <!-- sliding review cards -->
+  <g class="rv rvA">
+    <rect width="34" height="22" rx="4" fill="#1c232c" stroke="#ff7a59" stroke-opacity="0.7"/>
+    <text x="6" y="15" font-size="10" fill="#f85149" font-family="ui-sans-serif, system-ui, sans-serif">★✩✩✩✩</text>
+  </g>
+  <g class="rv rvB">
+    <rect width="34" height="22" rx="4" fill="#1c232c" stroke="#ff7a59" stroke-opacity="0.7"/>
+    <text x="6" y="15" font-size="10" fill="#f85149" font-family="ui-sans-serif, system-ui, sans-serif">★★✩✩✩</text>
+  </g>
+
+  <!-- footer -->
+  <g class="stage" style="animation-delay:.85s">
+    <rect x="48" y="520" width="1104" height="60" rx="12" fill="#161b22" stroke="#232a33"/>
+    <rect x="72" y="536" width="240" height="30" rx="15" fill="#1c232c" stroke="#232a33"/>
+    <text class="cd" x="192" y="556" text-anchor="middle">Web panel · runs, jobs, reports</text>
+    <rect x="330" y="536" width="330" height="30" rx="15" fill="#1c232c" stroke="#232a33"/>
+    <text class="cd" x="495" y="556" text-anchor="middle">no API key needed for keyword mode</text>
+    <text class="cd" x="1152" y="556" text-anchor="end" fill="#5b6672">reviews → themes → opportunity</text>
+  </g>
+</svg>

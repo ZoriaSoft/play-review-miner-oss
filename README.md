@@ -8,6 +8,8 @@ groups them into complaint themes (bugs, missing features, UX, pricing/ads, perf
 
 [Türkçe README](README.tr.md)
 
+<p align="center"><img src="docs/assets/how-it-works.svg" alt="Play Review Miner: Play category apps → 1-2 star review crawl → analyzer → complaint themes → opportunity report" width="100%"></p>
+
 - **No API key needed for the basic flow** — public Play Store data via
   [`google-play-scraper`](https://github.com/JoMingyu/google-play-scraper), offline keyword analysis.
 - **Three analyzers**
@@ -151,8 +153,10 @@ play-review-miner panel --port 8765       # http://127.0.0.1:8765
 - **Security:** binds to `127.0.0.1`. To reach it remotely, put it behind an authenticating reverse proxy or
   tunnel (e.g. Cloudflare Tunnel + Access) and pass `--public-host your.host`. It also has its own login:
   PBKDF2 password, HttpOnly + SameSite=Strict session cookie, `X-Panel` header + Origin check on every write,
-  login back-off, strict CSP, jobs built from whitelisted arguments without a shell. Panel state
-  (`data/panel.db`, including endpoint keys) is created with mode 600 and is git-ignored.
+  login back-off, strict CSP, jobs built from whitelisted arguments without a shell. `CF-Connecting-IP` is
+  honored only in tunnel mode (`--public-host` set) from a loopback peer — everywhere else the peer IP is
+  used, so the login back-off cannot be spoofed. Panel state (`data/panel.db`, including endpoint keys) is
+  created with mode 600 and is git-ignored.
 - The panel UI is in Turkish.
 
 ## Data model (SQLite)
