@@ -229,18 +229,18 @@ class Runner:
     def submit(self, raw: dict) -> int:
         p = validate(raw)
         cap = p.get("request_cap")
+        endpoint = None
         if p.get("endpoint_id"):
             endpoint = self.store.get_endpoint(p["endpoint_id"], with_key=True)
             if not endpoint:
                 raise JobError("uç nokta bulunamadı")
-            if endpoint.get("daily_limit") and p["kind"] != "report":  # a report sends no requests
-                left = (endpoint["daily_limit"] - self.store.requests_today(endpoint["id"])
-                        - self.store.reserved_requests(endpoint["id"]))
-                if left <= 0:
-                    raise JobError(f"{endpoint['name']}: bugünkü istek kotası dolu "
-                                   f"({endpoint['daily_limit']}/gün, çalışan işlerin ayırdığı dahil)")
-                cap = min(cap or left, left)
-        job_id = self.store.create_job(p["kind"], p, p.get("endpoint_id"), p.get("model"), cap)
+        # Quota check + job creation are one atomic store transaction; a report sends no requests.
+        daily_limit = endpoint.get("daily_limit") if endpoint and p["kind"] != "report" else None
+        job_id, _cap = self.store.create_job_reserved(p["kind"], p, p.get("endpoint_id"), p.get("model"),
+                                                      cap, daily_limit)
+        if job_id is None:
+            raise JobError(f"{endpoint['name']}: bugünkü istek kotası dolu "
+                           f"({endpoint['daily_limit']}/gün, çalışan işlerin ayırdığı dahil)")
         self._wake.set()
         return job_id
 
@@ -311,38 +311,49 @@ class Runner:
                 break
             if self._key(job["params"]) in busy:
                 continue  # same category/locale/list: wait, both would write the same ranking
-            self._start(job)
-            busy.add(self._key(job["params"]))
-            free -= 1
+            if self._start(job):
+                busy.add(self._key(job["params"]))
+                free -= 1
 
-    def _start(self, job: dict) -> None:
-        p = job["params"]
-        endpoint = self.store.get_endpoint(job["endpoint_id"], with_key=True) if job["endpoint_id"] else None
-        argv = build_argv(p, self.db_path, self.out_dir, endpoint["base_url"] if endpoint else None)
-        env = {k: v for k, v in os.environ.items() if not k.startswith(("LLM_", "GEMINI_"))}
-        env["PYTHONUNBUFFERED"] = "1"
-        # run exactly the package copy the panel itself was loaded from, wherever the cwd is
-        pkg_root = str(Path(__file__).resolve().parents[2])
-        env["PYTHONPATH"] = pkg_root + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
-        if endpoint:
-            if endpoint.get("api_key"):
-                env["LLM_API_KEY"] = endpoint["api_key"]
-            env["LLM_BATCH_SIZE"] = str(p["batch_size"])
-            env["LLM_CONCURRENCY"] = str(p["concurrency"])
-            if job["request_cap"]:
-                env["LLM_MAX_REQUESTS"] = str(job["request_cap"])
-        log_path = self.jobs_dir / f"{job['id']}.log"
-        fd = os.open(log_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        with os.fdopen(fd, "w") as logf:
-            logf.write("$ " + " ".join(argv[1:]) + "\n")
-            logf.flush()
-            proc = subprocess.Popen(argv, cwd=self.project_dir, env=env, stdout=logf, stderr=subprocess.STDOUT,
-                                    stdin=subprocess.DEVNULL, start_new_session=True)
+    def _start(self, job: dict) -> bool:
+        # Claim first: queued -> running in one conditional UPDATE. Rowcount 0
+        # means it was cancelled/finished after the scheduler snapshot — never spawn it.
+        if not self.store.claim_job(job["id"]):
+            return False
+        try:
+            p = job["params"]
+            endpoint = self.store.get_endpoint(job["endpoint_id"], with_key=True) if job["endpoint_id"] else None
+            argv = build_argv(p, self.db_path, self.out_dir, endpoint["base_url"] if endpoint else None)
+            env = {k: v for k, v in os.environ.items() if not k.startswith(("LLM_", "GEMINI_"))}
+            env["PYTHONUNBUFFERED"] = "1"
+            # run exactly the package copy the panel itself was loaded from, wherever the cwd is
+            pkg_root = str(Path(__file__).resolve().parents[2])
+            env["PYTHONPATH"] = pkg_root + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
+            if endpoint:
+                if endpoint.get("api_key"):
+                    env["LLM_API_KEY"] = endpoint["api_key"]
+                env["LLM_BATCH_SIZE"] = str(p["batch_size"])
+                env["LLM_CONCURRENCY"] = str(p["concurrency"])
+                if job["request_cap"]:
+                    env["LLM_MAX_REQUESTS"] = str(job["request_cap"])
+            log_path = self.jobs_dir / f"{job['id']}.log"
+            fd = os.open(log_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "w") as logf:
+                logf.write("$ " + " ".join(argv[1:]) + "\n")
+                logf.flush()
+                proc = subprocess.Popen(argv, cwd=self.project_dir, env=env, stdout=logf, stderr=subprocess.STDOUT,
+                                        stdin=subprocess.DEVNULL, start_new_session=True)
+        except Exception:
+            self.store.update_job(job["id"], status="failed", finished_at=now_iso(),
+                                  error="failed to start process")
+            log.exception("failed to start job %s", job["id"])
+            return False
         with self._lock:
             self._procs[job["id"]] = proc
-        self.store.update_job(job["id"], status="running", started_at=now_iso(), pid=proc.pid,
+        self.store.update_job(job["id"], pid=proc.pid,
                               process_start=_proc_start(proc.pid), log_path=str(log_path))
         threading.Thread(target=self._wait, args=(job["id"], proc), daemon=True).start()
+        return True
 
     def _wait(self, job_id: int, proc: subprocess.Popen) -> None:
         rc = proc.wait()

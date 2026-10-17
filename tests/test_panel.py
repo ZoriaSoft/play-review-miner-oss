@@ -201,6 +201,56 @@ def test_daily_quota_is_enforced(panel):
     assert c.req("POST", "/api/jobs", {"kind": "report", "analyzer": "llm", "endpoint_id": e["id"], "model": "m/x"})[0] == 201
 
 
+def test_concurrent_submits_cannot_overshoot_quota(tmp_path):
+    store = Store(tmp_path / "panel.db")
+    eid = store.save_endpoint({"name": "gw", "base_url": "https://x/v1", "daily_limit": 10,
+                               "api_key": SECRET})
+    runner = Runner(store, tmp_path, "data/reviews.db", "reports", tmp_path / "jobs", max_parallel=0)
+    try:
+        barrier = threading.Barrier(2)
+        results, errors = [], []
+
+        def submit():
+            barrier.wait(timeout=10)
+            try:
+                results.append(runner.submit({"kind": "analyze", "analyzer": "llm",
+                                              "endpoint_id": eid, "model": "m/x"}))
+            except JobError as exc:
+                errors.append(str(exc))
+
+        threads = [threading.Thread(target=submit) for _ in range(2)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(timeout=15)
+        # Exactly one wins the whole remaining quota; the other is rejected, never double-booked.
+        assert len(results) == 1 and len(errors) == 1 and "kota" in errors[0]
+        assert store.reserved_requests(eid) == 10
+        assert store.get_job(results[0])["request_cap"] == 10
+    finally:
+        runner.shutdown()
+        store.close()
+
+
+def test_cancelled_job_is_not_started(tmp_path):
+    store = Store(tmp_path / "panel.db")
+    runner = Runner(store, tmp_path, "data/reviews.db", "reports", tmp_path / "jobs", max_parallel=0)
+    try:
+        jid = runner.submit({"kind": "report", "analyzer": "keyword"})
+        snapshot = store.get_job(jid)  # scheduler's stale queued snapshot
+        assert snapshot["status"] == "queued"
+        assert runner.cancel(jid) is True
+        assert store.get_job(jid)["status"] == "cancelled"
+        # The stale snapshot must not spawn a process: claim fails (rowcount 0).
+        assert runner._start(snapshot) is False
+        assert store.get_job(jid)["status"] == "cancelled"
+        assert jid not in runner._procs
+        assert not (tmp_path / "jobs" / f"{jid}.log").exists()
+    finally:
+        runner.shutdown()
+        store.close()
+
+
 def test_report_listing_view_and_traversal(panel):
     _, port, root = panel
     (root / "reports" / "A_tr-tr_keyword.md").write_text("# Rapor\n\n> “<img src=x onerror=alert(1)>”\n", encoding="utf-8")
