@@ -203,11 +203,11 @@ class KeywordAnalyzer(Analyzer):
                 for tid, cat, label, opp, _ in THEMES]
 
     # ---- emergent clusters for reviews no rule matched ---------------------------------
-    def extra_sections(self, reviews: list[dict], labels: dict[str, dict]) -> dict:
+    def extra_sections(self, reviews: list[dict], labels: dict[str, dict], max_examples: int = 3) -> dict:
         rest = [r for r in reviews
                 if r["review_id"] in labels and not labels[r["review_id"]]["themes"]
                 and not labels[r["review_id"]]["low_signal"]]
-        return {"unmatched_count": len(rest), "clusters": tfidf_clusters(rest)}
+        return {"unmatched_count": len(rest), "clusters": tfidf_clusters(rest, max_examples=max_examples)}
 
 
 TR_STOP = set("""
@@ -220,7 +220,8 @@ lutfen tesekkurler app apps just really very get got even dont don't don can't c
 """.split())
 
 
-def tfidf_clusters(reviews: list[dict], max_clusters: int = 15, min_size: int = 5) -> list[dict]:
+def tfidf_clusters(reviews: list[dict], max_clusters: int = 15, min_size: int = 5,
+                   max_examples: int = 3) -> list[dict]:
     """Cluster leftover reviews with TF-IDF + KMeans; label each cluster by top terms."""
     if len(reviews) < min_size * 2:
         return []
@@ -259,7 +260,7 @@ def tfidf_clusters(reviews: list[dict], max_clusters: int = 15, min_size: int = 
             "top_terms": top_terms,
             "apps": apps.most_common(5),
             "examples": [{"app": reviews[i]["app_title"], "score": reviews[i]["score"],
-                          "content": reviews[i]["content"]} for i in order[:3]],
+                          "content": reviews[i]["content"]} for i in (order[:max_examples] if max_examples > 0 else [])],
         })
     clusters.sort(key=lambda c: -c["size"])
     return clusters

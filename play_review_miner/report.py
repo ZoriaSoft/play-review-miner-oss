@@ -19,6 +19,8 @@ def _clip(text: str, n: int = 260) -> str:
 
 def _pick_quotes(items: list[dict], k: int) -> list[dict]:
     """Prefer informative (30-400 chars), upvoted quotes from different apps."""
+    if k <= 0:  # --quotes 0: privacy mode, no verbatim reviews at all
+        return []
     cutoff = (datetime.now() - timedelta(days=548)).isoformat()  # ~18 months
 
     def quality(r):
@@ -260,11 +262,13 @@ def render_markdown(data: dict, args, analyzer_name: str, n_themes: int) -> str:
         L.append(f"Hiçbir anahtar kelime temasına girmeyen {extra.get('unmatched_count')} bilgili yorum "
                  "TF-IDF + KMeans ile kümelendi. Etiketler otomatik terimlerdir, elle yorumlanmalıdır.")
         L.append("")
+        _quotes = getattr(args, "quotes", 3)
+        show_examples = _quotes is None or _quotes > 0
         for i, c in enumerate(extra["clusters"], 1):
             apps = ", ".join(f"{a} ({n})" for a, n in c["apps"])
             L.append(f"**Küme {i}** ({c['size']} yorum) — terimler: `{', '.join(c['top_terms'])}` — {apps}")
             L.append("")
-            for e in c["examples"][:2]:
+            for e in (c["examples"][:2] if show_examples else []):
                 L.append(f"> “{_clip(e['content'], 200)}” — _{e['app']}, {e['score']}★_")
                 L.append("")
 
@@ -315,7 +319,7 @@ def build_report(conn, analyzer_name: str, reviews: list[dict], args) -> tuple[P
         from .analyzers.keyword import KeywordAnalyzer
         lab = {rid: {"themes": json.loads(r["themes"] or "[]"), "low_signal": bool(r["low_signal"])}
                for rid, r in labels.items()}
-        data["extra"] = KeywordAnalyzer().extra_sections(reviews, lab)
+        data["extra"] = KeywordAnalyzer().extra_sections(reviews, lab, max_examples=max(0, getattr(args, "quotes", 3) or 0))
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
