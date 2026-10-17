@@ -13,6 +13,7 @@ import logging
 import os
 import re
 import signal
+import sqlite3
 import subprocess
 import sys
 import threading
@@ -285,8 +286,14 @@ class Runner:
         return _proc_start(pid) == process_start
 
     def shutdown(self) -> None:
+        """Stop the scheduler AND wait for it: the thread must be out of any
+        in-flight store query before the caller may close the shared SQLite
+        connection (closing under it crashed the process with a segfault)."""
         self._stop = True
         self._wake.set()
+        self._thread.join(timeout=10)
+        if self._thread.is_alive():
+            log.warning("job scheduler did not stop within 10s")
 
     # -- scheduling
     def _loop(self) -> None:
@@ -362,6 +369,14 @@ class Runner:
         self._finish(job_id, rc)
 
     def _finish(self, job_id: int, rc: int | None) -> None:
+        try:
+            self._finish_job(job_id, rc)
+        except sqlite3.ProgrammingError:
+            # The panel is shutting down and the store is already closed; a
+            # waiter thread of a still-running job has nothing left to update.
+            log.debug("job %s finished after the store was closed", job_id)
+
+    def _finish_job(self, job_id: int, rc: int | None) -> None:
         job = self.store.get_job(job_id)
         text = read_tail(job["log_path"], 2_000_000)
         requests, reports, error = _result(text, Path(self.project_dir) / self.out_dir)
