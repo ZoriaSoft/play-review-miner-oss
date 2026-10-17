@@ -20,6 +20,7 @@ import time
 import urllib.error
 import urllib.request
 
+from ..redact import redact
 from .llm import LLMAnalyzer, LLMError, LLMTruncated, normalize_theme_id
 from .openai_compat import USER_AGENT
 
@@ -86,7 +87,7 @@ class GeminiAnalyzer(LLMAnalyzer):
             except LLMTruncated:
                 raise
             except urllib.error.HTTPError as exc:
-                detail = exc.read().decode(errors="replace")[:500]
+                detail = redact(exc.read().decode(errors="replace")[:500]) or ""
                 if exc.code in (429, 500, 502, 503, 504) and attempt < retries:
                     wait = 5 * (2 ** attempt) + random.random()
                     log.warning("Gemini HTTP %s, retry in %.0fs", exc.code, wait)

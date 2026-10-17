@@ -34,6 +34,7 @@ import urllib.error
 import urllib.request
 
 from .. import __version__
+from ..redact import redact
 from .llm import LLMAnalyzer, LLMError, LLMTruncated, describe_schema, parse_json_items, slug
 
 log = logging.getLogger(__name__)
@@ -159,7 +160,7 @@ class OpenAICompatAnalyzer(LLMAnalyzer):
             except LLMTruncated:
                 raise
             except urllib.error.HTTPError as exc:
-                detail = exc.read().decode(errors="replace")[:500]
+                detail = redact(exc.read().decode(errors="replace")[:500]) or ""
                 if exc.code == 400 and self._downgrade(mode, detail):
                     continue  # same request in the next JSON mode; not counted as a retry
                 if exc.code in (401, 403):
@@ -212,7 +213,7 @@ def list_models(base_url: str | None = None, timeout: int = 30, api_key: str | N
         with urllib.request.urlopen(urllib.request.Request(f"{base}/models", headers=headers), timeout=timeout) as r:
             data = json.loads(r.read())
     except urllib.error.HTTPError as exc:
-        raise LLMError(f"HTTP {exc.code} from {base}/models: {exc.read().decode(errors='replace')[:200]}") from exc
+        raise LLMError(f"HTTP {exc.code} from {base}/models: {redact(exc.read().decode(errors='replace')[:200])}") from exc
     except (urllib.error.URLError, TimeoutError, ValueError) as exc:
         raise LLMError(f"cannot list models at {base}: {exc}") from exc
     return [m["id"] for m in data.get("data", []) if isinstance(m, dict) and m.get("id")]

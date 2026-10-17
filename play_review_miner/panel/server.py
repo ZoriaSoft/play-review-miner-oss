@@ -25,6 +25,7 @@ from urllib.parse import parse_qs, urlparse
 from .. import __version__
 from ..analyzers.base import AnalyzerError
 from ..crawler import CATEGORIES
+from ..redact import redact
 from . import md
 from .jobs import KINDS, JobError, Runner, progress, read_tail
 from .store import Store, mask
@@ -152,7 +153,7 @@ class Panel:
         try:
             ids = list_models(e["base_url"], timeout=30, api_key=e.get("api_key") or "")
         except AnalyzerError as exc:
-            msg = str(exc)
+            msg = redact(str(exc)) or ""
             if e.get("api_key"):
                 msg = msg.replace(e["api_key"], mask(e["api_key"]) or "")
             raise ApiError(502, f"Model listesi alınamadı: {msg}") from None
@@ -163,10 +164,12 @@ class Panel:
         out = dict(job)
         out.pop("pid", None)
         out["log_path"] = None
+        if out.get("error"):
+            out["error"] = redact(out["error"])
         text = read_tail(job.get("log_path"), 200_000 if with_log else 20_000)
         out["progress"] = progress(text)
         if with_log:
-            out["log"] = text[-60_000:]
+            out["log"] = redact(text[-60_000:])
         return out
 
     def reports(self) -> list[dict]:
@@ -304,9 +307,9 @@ def make_handler(panel: Panel):
                     raise ApiError(401, "Oturum gerekli")
                 return self.api(method, path, parse_qs(url.query))
             except ApiError as exc:
-                self.json(exc.status, {"error": exc.message})
+                self.json(exc.status, {"error": redact(exc.message)})
             except JobError as exc:
-                self.json(400, {"error": str(exc)})
+                self.json(400, {"error": redact(str(exc))})
             except Exception:
                 log.exception("panel error on %s %s", method, path)
                 self.json(500, {"error": "Sunucu hatası (ayrıntı panel günlüğünde)"})
