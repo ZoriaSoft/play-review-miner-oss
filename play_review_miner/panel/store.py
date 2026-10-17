@@ -203,6 +203,50 @@ class Store:
                        "VALUES (?, ?, ?, ?, 'queued', ?, ?)",
                        (kind, json.dumps(params, ensure_ascii=False), endpoint_id, model, request_cap, now_iso()))
 
+    def create_job_reserved(self, kind: str, params: dict, endpoint_id: int | None, model: str | None,
+                            request_cap: int | None, daily_limit: int | None) -> tuple[int | None, int | None]:
+        """Atomically check the daily quota and insert a queued job.
+
+        The usage/reservation reads and the INSERT run in one BEGIN IMMEDIATE
+        transaction under the store lock, so two concurrent submissions cannot
+        both observe the same remaining quota and overshoot the daily limit.
+        Returns (job_id, effective_cap), or (None, remaining) when exhausted.
+        """
+        with self._lock:
+            try:
+                self._conn.execute("BEGIN IMMEDIATE")
+                cap = request_cap
+                if endpoint_id is not None and daily_limit:
+                    used = self._conn.execute(
+                        "SELECT COALESCE(SUM(requests), 0) FROM jobs WHERE endpoint_id=? "
+                        "AND substr(started_at,1,10)=?", (endpoint_id, today_utc())).fetchone()[0]
+                    reserved = self._conn.execute(
+                        "SELECT COALESCE(SUM(request_cap), 0) FROM jobs WHERE endpoint_id=? "
+                        "AND status IN ('queued', 'running')", (endpoint_id,)).fetchone()[0]
+                    left = int(daily_limit) - int(used) - int(reserved)
+                    if left <= 0:
+                        self._conn.rollback()
+                        return None, left
+                    cap = min(cap or left, left)
+                cur = self._conn.execute(
+                    "INSERT INTO jobs (kind, params, endpoint_id, model, status, request_cap, created_at) "
+                    "VALUES (?, ?, ?, ?, 'queued', ?, ?)",
+                    (kind, json.dumps(params, ensure_ascii=False), endpoint_id, model, cap, now_iso()))
+                job_id = cur.lastrowid
+                self._conn.commit()
+                return job_id, cap
+            except Exception:
+                self._conn.rollback()
+                raise
+
+    def claim_job(self, job_id: int) -> bool:
+        """Atomically move queued -> running. False when already claimed/cancelled/finished."""
+        with self._lock, self._conn:
+            cur = self._conn.execute(
+                "UPDATE jobs SET status='running', started_at=? WHERE id=? AND status='queued'",
+                (now_iso(), job_id))
+            return cur.rowcount == 1
+
     def update_job(self, job_id: int, **fields) -> None:
         if "reports" in fields and not isinstance(fields["reports"], str):
             fields["reports"] = json.dumps(fields["reports"], ensure_ascii=False)

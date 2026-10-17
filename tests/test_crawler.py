@@ -83,6 +83,27 @@ def test_interrupted_crawl_keeps_previous_list(conn, fake_play, monkeypatch):
     assert _list(conn, db.staging_name("top")) == []
 
 
+def test_single_detail_failure_keeps_previous_list(conn, fake_play, monkeypatch):
+    fake_play(FakePlay({"a.one": {"reviews": {1: _reviews("a", 3)}},
+                        "b.two": {"reviews": {1: _reviews("b", 3)}}}))
+    _crawl(conn)
+    assert _list(conn) == ["a.one", "b.two"]
+
+    real_fetch = crawler.fetch_details
+
+    def flaky(conn_, app_id, lang, country, throttle):
+        if app_id == "b.two":
+            raise RuntimeError("simulated detail failure")
+        return real_fetch(conn_, app_id, lang, country, throttle)
+
+    monkeypatch.setattr(crawler, "fetch_details", flaky)
+    stats = _crawl(conn, refresh_apps=True)
+    # One detail error: crawl is incomplete, not published, previous list intact (not emptied).
+    assert any("b.two: details" in e for e in stats["errors"])
+    assert stats["complete"] is False and stats["published"] is False
+    assert _list(conn) == ["a.one", "b.two"]
+
+
 def test_exclude_big_uses_word_boundaries(conn, fake_play):
     fake_play(FakePlay({"com.google.android.keep": {"reviews": {1: _reviews("g", 2)}},
                         "x.notes": {"developer": "Microsoft Corporation", "reviews": {1: _reviews("m", 2)}},
