@@ -271,7 +271,8 @@ def crawl(conn, category: str, country: str, lang: str, top: int, per_app: int,
                                     extra_terms=search_terms, use_search=filtering or bool(search_terms))
     log.info("%d candidate apps", len(candidates))
     stats = {"category": category, "country": country, "lang": lang, "list": list_name,
-             "candidates": len(candidates), "apps": [], "excluded": [], "errors": []}
+             "candidates": len(candidates), "apps": [], "excluded": [], "errors": [],
+             "complete": True, "published": False}
     staging = db.staging_name(list_name)
     db.reset_list(conn, staging, category, country, lang)  # leftovers of an interrupted crawl
     conn.commit()
@@ -332,7 +333,16 @@ def crawl(conn, category: str, country: str, lang: str, top: int, per_app: int,
                  (row["title"] or "")[:30], dev[:22], fetched, new)
         stats["apps"].append({"rank": rank, "app_id": app_id, "title": row["title"], "developer": dev,
                               "source": source, "fetched": fetched, "new": new})
-    db.publish_list(conn, list_name, category, country, lang)
+    # Partial-success policy: any error (details or reviews) makes the crawl incomplete.
+    # Do not publish the staging ranking then — the previous list stays untouched,
+    # so a single failing app cannot wipe a previously verified list.
+    if stats["errors"]:
+        stats["complete"] = False
+        log.warning("Crawl incomplete: %d error(s); keeping previous list %r (not publishing %d staged apps)",
+                    len(stats["errors"]), list_name, rank)
+    else:
+        db.publish_list(conn, list_name, category, country, lang)
+        stats["published"] = True
     if rank < top:
         log.warning("Only %d apps matched the filters (wanted %d); add --search-term or raise --candidates",
                     rank, top)
