@@ -87,6 +87,7 @@ class Store:
         self._conn.execute("PRAGMA foreign_keys=ON")
         self._conn.executescript(SCHEMA)
         self._lock = threading.RLock()
+        self._closed = False
         self._migrate()
         if new:
             os.chmod(self.path, 0o600)
@@ -105,7 +106,14 @@ class Store:
         self._conn.commit()
 
     def close(self) -> None:
-        self._conn.close()
+        """Close the shared connection. Must take the lock like every query:
+        freeing the sqlite handle while another thread (e.g. the job scheduler)
+        is mid-statement is a use-after-free that crashed the whole process."""
+        with self._lock:
+            if self._closed:
+                return
+            self._closed = True
+            self._conn.close()
 
     def _q(self, sql: str, params=()) -> list[dict]:
         with self._lock:

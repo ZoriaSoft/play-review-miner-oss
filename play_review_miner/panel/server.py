@@ -418,5 +418,6 @@ def serve(project_dir: Path, db_path: str, out_dir: str, data_dir: Path, host: s
     except KeyboardInterrupt:
         pass
     finally:
-        panel.runner.shutdown()
+        panel.runner.shutdown()   # stops and joins the scheduler thread first
         httpd.server_close()
+        panel.store.close()       # only then is the connection safe to close

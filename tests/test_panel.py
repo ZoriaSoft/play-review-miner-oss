@@ -251,6 +251,62 @@ def test_cancelled_job_is_not_started(tmp_path):
         store.close()
 
 
+def test_shutdown_joins_scheduler_before_store_close(tmp_path, monkeypatch):
+    """Regression (segfault): shutdown() used to return without waiting for the
+    scheduler thread, so the teardown's store.close() could free the shared
+    SQLite connection while the scheduler was mid-query — a use-after-free that
+    killed the whole test process. shutdown() must join the thread, so the
+    connection is only closed after the last query finished."""
+    store = Store(tmp_path / "panel.db")
+    runner = Runner(store, tmp_path, "data/reviews.db", "reports", tmp_path / "jobs", max_parallel=0)
+    events = []
+    in_schedule, release = threading.Event(), threading.Event()
+
+    def slow_schedule(self):
+        if in_schedule.is_set():
+            return
+        in_schedule.set()              # scheduler is mid-pass, holding the store
+        assert release.wait(5)
+        events.append("schedule_done")
+
+    monkeypatch.setattr(Runner, "_schedule", slow_schedule)
+    runner._wake.set()                 # start a scheduler pass now
+    assert in_schedule.wait(5)
+    release.set()
+    runner.shutdown()                  # must not return while the pass is in flight
+    assert not runner._thread.is_alive()  # joined, not just signalled
+    events.append("store_closed")
+    store.close()                      # only now may the connection be closed
+    assert events == ["schedule_done", "store_closed"]
+
+
+def test_store_close_waits_for_in_flight_query(tmp_path):
+    """Regression (segfault): close() used to free the connection without the
+    store lock, racing other threads mid-statement. It must serialize like
+    every query — and be idempotent."""
+    s = Store(tmp_path / "panel.db")
+    holding, release = threading.Event(), threading.Event()
+
+    def query():
+        with s._lock:
+            holding.set()
+            assert release.wait(5)
+
+    t = threading.Thread(target=query)
+    t.start()
+    assert holding.wait(5)
+    closed = []
+    closer = threading.Thread(target=lambda: (s.close(), closed.append(True)))
+    closer.start()
+    time.sleep(0.2)
+    assert not closed            # close is blocked by the lock, not racing past it
+    release.set()
+    t.join(5)
+    closer.join(5)
+    assert closed == [True]
+    s.close()                    # second close is a no-op
+
+
 def test_report_listing_view_and_traversal(panel):
     _, port, root = panel
     (root / "reports" / "A_tr-tr_keyword.md").write_text("# Rapor\n\n> “<img src=x onerror=alert(1)>”\n", encoding="utf-8")
